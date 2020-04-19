@@ -99,7 +99,7 @@ cProfile是一种Deterministic Profiling。Deterministic Profiling是指记录�
 `flameprof requests.prof > requests.svg`
 
 最后用浏览器打开svg。
-![](/img/in-post/post-flame-graph.png)
+![](/img/in-post/2020-04-04-python_flame/post-flame-graph.png)
 
 图分成上下两部分，上部的图是按照函数调用栈和执行时间排列。下部反方向的图按照函数执行时间比例从大到小排列。上部的图中execute是最顶层的函数，往上是它调用的子函数，直到调用链最底层的函数。宽度表示每个函数的执行时间占用的比例，越宽表示越耗时。
 

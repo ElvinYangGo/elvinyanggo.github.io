@@ -13,7 +13,7 @@ tags:
 
 这个问题的关键点是需要知道常见硬件的性能参数。
 
-![](/img/in-post/post-hardware-metric.png)
+![](/img/in-post/2020-04-18-performance_estimate/post-hardware-metric.png)
 
 如何使用这个表呢？我们举几个例子。
 
@@ -44,7 +44,7 @@ tags:
 假设我们有个分布式系统需要使用Paxos作为一致性协议，同城双机房三副本部署，如何估算一致性协议模块的性能？
 
 Basic Paxos流程如下：
-![](/img/in-post/post-basic-paxos.png)
+![](/img/in-post/2020-04-18-performance_estimate/post-basic-paxos.png)
 
 
 整个流程中，CPU，内存，网卡的开销和同城网络来回开销，磁盘开销相比可以忽略不计，所以主要考虑网络来回和磁盘开销。Proposer发起提案到value被选择，一共两个网络来回。每个网络来回中，有一个副本是同机房，时间开销0.1 ms，另一个同城跨机房1 ms。网络开销总共2 ms。Proposer和Acceptor至少各有一次磁盘写入操作，如果使用SATA磁盘，每次写入数据量比较少，主要开销是寻道时间，两次共20 ms，整个流程网络开销 2 ms + 磁盘开销 20 ms = 22 ms。如果使用SSD磁盘，每次0.1 ms，两次0.2 ms，整个流程网络开销2 ms + 磁盘开销0.2 ms = 2.2 ms。
