@@ -9,7 +9,7 @@ tags:
   - Distributed System
 ---
 
-最近看了《大规模分布式存储系统：原理解析与架构实践》，主要介绍了OceanBase数据库的原理和实现，是一本难得的好书。本文介绍书中的关键内容以及自己的想法。如果你有充足的时间，建议直接读原书，没必要花时间阅读本文，如果没有的话，可以阅读本文了解OceanBase的整体架构和关键内容。另外书中的内容是基于OceanBase 0.4版本的，0.4发布于2012年，据今已经8年，一些内容上可能有点陈旧，但是不影响整本书的价值。
+最近看了《大规模分布式存储系统：原理解析与架构实践》，主要介绍了OceanBase数据库的原理和实现，是一本难得的好书。本文介绍书中的关键内容以及自己的想法。如果你有充足的时间，建议直接读原书，没必要花时间阅读本文，如果没有的话，可以阅读本文了解OceanBase的整体架构和关键内容。另外书中的内容是基于OceanBase 0.4版本的，0.4发布于2012年，距今已经8年，一些内容上可能有点陈旧，但是不影响整本书的价值。
 
 ## 1. 背景
 
@@ -32,7 +32,7 @@ OceanBase开发背景是为了解决海量数据的读写问题。举个例子�
 
 大部分互联网业务有个特点就是写多读少，读的次数可能是写的几倍，几十倍，甚至更多。比如游戏业务，读写比可能是5:1，热门视频读写比可能是一百万比一。针对这个特点，OceanBase设计时采用单台更新服务器保存最近一段时间的增量数据。历史数据也叫基线数据保存在基线服务器中。每次查询的时候，从基线服务器取到基线数据，从更新服务器取到增量数据，合并后返回给客户端。更新服务器上的数据会定期同步给基线服务器，这样可以保证更新服务器上的数据不会太大。整体架构如下：
 
-![](/img/in-post/post-architecture.png)
+![](/img/in-post/2020-04-19-oceanbase/post-architecture.png)
 
 - 客户端：兼容MySQL客户端，支持JDBC，C客户端访问。
 - RootServer：管理服务器，管理集群中所有服务器，子表数据分布和副本管理。一主一备强同步。
@@ -58,7 +58,7 @@ RootServer主要功能包括集群管理，数据分布和副本管理。
 
 数据分布：存储数据时，OceanBase使用主键对数据排序后存储。基线数据按照主键划分子表，每个子表默认256MB，默认三副本，分布在多台ChunkServer中。每个子表负责的主键范围保存在RootServer中。一个子表划分例子：
 
-![](/img/in-post/post-table-split.png)
+![](/img/in-post/2020-04-19-oceanbase/post-table-split.png)
 
 副本管理：当某台ChunkServer故障时，RootServer检测后触发对这台ChunkServer上的子表增加副本的操作。如果某台ChunkServer的负载比较高，RootServer会定期执行负载均衡操作，将某些子表迁移到负载较低的机器上。
 
@@ -98,7 +98,7 @@ UpdateServer的租约一般3 ～ 5秒，正常情况下RootServer定期给Update
 
 UpdateServer的数据结构是一个内存B+树，结构如下：
 
-![](/img/in-post/post-memtable.png)
+![](/img/in-post/2020-04-19-oceanbase/post-memtable.png)
 
 树中每个叶子节点对应一行数据，key为主键，value为每行按照时间的顺序操作链表。
 
@@ -130,7 +130,7 @@ OceanBase相当于GFS + MemSQL，ChunkServer相当于GFS，UpdateServer相当于
 
 ### 3.3 子表复制与负载均衡
 
-![](/img/in-post/post-sstable-chunk.png)
+![](/img/in-post/2020-04-19-oceanbase/post-sstable-chunk.png)
 
 RootServer有一个线程专门执行子表复制和负载均衡任务。
 
@@ -160,7 +160,7 @@ RootServer有一个线程专门执行子表复制和负载均衡任务。
 
 SSTable的文件结构如下：
 
-![](/img/in-post/post-sstable-structure.png)
+![](/img/in-post/2020-04-19-oceanbase/post-sstable-structure.png)
 
 1）第一列下部框图是整个SSTable的结构。每行数据按照主键排序后存放在多个Block中，Block之间也是按照顺序排列。接着存放的是Block Index，把每个Block最后一行的主键作为Block Index。接着是布隆过滤器和表Schema。最后是Trailer和Trailer Offset。Trailer是保存的是各个区域的偏移信息，比如每个Block在哪个位置，Block Index在哪个位置，有了这些位置信息可以快速读取到某个Block的数据，而不需要把整个文件加载到内存。Trailer Offset保存到是Trailer本身的偏移位置。
 
@@ -188,13 +188,13 @@ OceanBase支持多线程并发修改，写操作拆分为两个阶段：
 
 2）提交（单线程执行）：提交线程不断地扫描并取出提交任务队列中的提交任务，将这些任务的操作日志追加到日志缓冲区中。如果日志缓冲区到达一定大小，将日志缓冲区中的数据同步到备机，同时写入主机的磁盘日志文件。操作日志写成功后，将未提交行操作链表中的cell操作追加到已提交行操作链表的末尾，释放锁并回复客户端写操作成功。
 
-![](/img/in-post/post-transaction.png)
+![](/img/in-post/2020-04-19-oceanbase/post-transaction.png)
 
 为什么要拆分成两阶段？多个线程同时提交会有什么问题？我能想到的一种解释是提交阶段的写日志缓冲，同步备机和写磁盘这三个操作是没办法多线程执行的，所以把提交阶段设置为单线程执行，而预提交多线程执行，既保证了正确性又兼顾了性能。
 
 另外每个写事务会根据提交时的系统时间生成一个事务版本，读事务只会读取在它之前提交的写事务的修改操作。其中写事务需要加锁，版本号是在提交时生成，而读事务不需要加锁，版本号在预提交时生成。对于读写事务，需要加锁，版本号在提交时生成。举个例子：
 
-![](/img/in-post/post-mvcc.png)
+![](/img/in-post/2020-04-19-oceanbase/post-mvcc.png)
 
 对主键为1的商品有2个写事务：
 
@@ -236,7 +236,7 @@ OceanBase处理死锁的方式为事务执行时超过一段时间无法获取�
 
 改进架构，将UpdateServer、ChunkServer、MergeServer和RootServer合并为一个ObServer。这样可以减少运维和部署成本。 而ObProxy主要是反向代理的作用，对用户的SQL进行解析，将请求发给对应的ObServer。新的架构如下：
 
-![](/img/in-post/post-architecture-10.png)
+![](/img/in-post/2020-04-19-oceanbase/post-architecture-10.png)
 
 实现多租户功能SQL-VM，隔离不同用户之间资源，包括CPU，内存和IO。
 
