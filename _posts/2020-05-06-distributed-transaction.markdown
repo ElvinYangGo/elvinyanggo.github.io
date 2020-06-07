@@ -21,6 +21,10 @@ tags:
 
 <!-- toc -->
 
+- 这里是一个目录
+
+{:toc}
+
 [toc]
 
 最近在研究分布式数据库相关的技术，对于数据库来说，不管是单机数据库还是分布式数据库，事务都是一个绕不去的坎。不光是数据库，对于微服务架构，不同服务之间也会涉及到分布式事务的处理。本文先介绍事务的基本概念和原理，然后介绍单机事务的实现方案，最后介绍分布式事务的实现方案。
@@ -97,7 +101,8 @@ log block日志内容中保存是具体redo日志，格式如下：
 
 MySQL启动时，首先检查当前redo日志文件中的LSN和数据文件中的checkpoint对应的LSN，如果两个一样，说明没有数据丢失。如果checkpoint LSN小于redo LSN，说明有数据丢失，从checkpoint LSN开始，遍历每个redo日志，找到对应的数据页，如果数据页的LSN小于redo日志中的LSN，需要对这一页进行数据恢复。理论上redo日志中所有在checkpoint之后的事务都需要恢复，为什么这里还要比较每一页的LSN？这是因为MySQL刷脏页时，是先把所有脏页写入磁盘，最后再写入checkpoint LSN。有可能脏页已经写入磁盘，但是在写入checkpoint LSN前宕机，这就需要在恢复事务时判断数据页中的LSN，避免重复恢复。这里只介绍了redo日志在数据恢复时的使用，实际上还要结合binlog一起使用，这就更复杂了，不详细展开。
 
-![](/img/in-post/2020-05-06-distributed-transactionn/post-redo-recovery.png)
+![](/img/in-post/2020-05-06-distributed-transaction/post-redo-recovery.png)
+
 
 ### undo日志
 
@@ -572,7 +577,7 @@ MQ模型使用消息队列(Message Queue)来通知事务的各个参与者执行
 MQ模型流程如下：
 
 ```
-Sponsor                             MQ                        Participant
+Sponsor                            MQ                         Participant
 
                   PREPARE
             --------------->
@@ -584,7 +589,7 @@ commit*
             --------------->
                                commit*/abort*
                                                      COMMIT
-                 															--------------->
+                                              --------------->                             
                                                      ACK        commit*
                                 end           <---------------                        
 
@@ -633,8 +638,6 @@ MQ模型中，需要确保参与者一定能成功执行事务，参与者不能
 [Apache ServiceComb](https://servicecomb.apache.org/)
 
 华为开源的分布式事务方案，支持Java，支持Saga模型
-
-</br>
 
 
 
