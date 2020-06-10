@@ -1,3 +1,7 @@
+<!--//添加评论系统-->
+<link rel="stylesheet" href="../../../../css/gitalk.css">
+<script src="../../../../js/gitalk.min.js"></script>
+
 ---
 layout: default
 ---
@@ -61,6 +65,12 @@ layout: default
                 <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
                 <!-- 网易云跟帖 评论框 end -->
                 {% endif %}
+
+                <!--   gitalk       -->
+                {% if site.gitalk %}
+                <div class="comment">
+                    {% include comments.html %}
+                </div>
             </div>  
 
     <!-- Side Catalog Container -->
