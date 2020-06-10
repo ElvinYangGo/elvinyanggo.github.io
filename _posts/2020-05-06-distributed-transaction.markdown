@@ -2,6 +2,7 @@
 layout: post
 title: "从单机事务到分布式事务"
 author: "Yang"
+header-img: "img/post-bg-transaction.jpg"
 header-style: text
 toc: true
 tags:
