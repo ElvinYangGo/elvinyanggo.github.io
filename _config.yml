@@ -54,17 +54,17 @@ kramdown:
 
 # comments: true
 # Disqus settings
-# disqus_username: elvinyang
+#disqus_username: elvinyang
 
 # Netease settings
 netease_comment: false
 gitalk:
-enable: true
-owner: elvinyanggo
-repo: elvinyanggo.github.io
-clientID: 2b7e23d37b1e7c07c4a6
-clientSecret: db15e03dc89e5925bacbb644acbc58d805e9314a
-admin: elvinyanggo
+  enable: true
+  owner: elvinyanggo
+  repo: elvinyanggo.github.io
+  clientID: 2b7e23d37b1e7c07c4a6
+  clientSecret: db15e03dc89e5925bacbb644acbc58d805e9314a
+  admin: elvinyanggo
 
 
 # Analytics settings
