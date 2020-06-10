@@ -4,13 +4,13 @@
 <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
 <script>
 var gitalk = new Gitalk({
-    id: '{{ page.date }}',
     clientID: '{{ site.gitalk.clientID }}',
     clientSecret: '{{ site.gitalk.clientSecret }}',
     repo: '{{ site.gitalk.repo }}',
     owner: '{{ site.gitalk.owner }}',
     admin: ['{{ site.gitalk.owner }}'], 
-	labels: ['Gitalk'],
+    labels: ['Gitalk'],
+    id: location.pathname
 })
 gitalk.render('gitalk-container')
 </script> 
