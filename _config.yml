@@ -60,11 +60,11 @@ kramdown:
 netease_comment: false
 gitalk:
   enable: true
-  owner: ElvinYangGo
+  owner: elvinyanggo
   repo: elvinyanggo.github.io
   clientID: 2b7e23d37b1e7c07c4a6
   clientSecret: db15e03dc89e5925bacbb644acbc58d805e9314a
-  admin: ElvinYangGo
+  admin: elvinyanggo
 
 
 # Analytics settings
