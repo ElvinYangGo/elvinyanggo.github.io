@@ -294,8 +294,6 @@ An * next to the record type means that the record is forced to stable storage.
 
 #### 第一阶段Prepare
 
-{:.no_toc}
-
 1. 协调者分配事务ID，写到磁盘，然后询问所有参与者是否可以执行事务
 
 2. 参与者执行事务，对资源加锁，写redo/undo日志到磁盘
@@ -303,8 +301,6 @@ An * next to the record type means that the record is forced to stable storage.
 3. 如果参与者执行事务成功，回复Yes，如果执行失败，回复No
 
 #### 第二阶段Commit/Abort
-
-{:.no_toc}
 
 分两种情况
 
@@ -450,7 +446,7 @@ An * next to the record type means that the record is forced to stable storage.
 
 
 
-## 分布式事务实现
+## 分布式事务模型
 
 分布式事务实现上主要有四种模型：XA模型、TCC模型、Saga模型和MQ模型。
 
