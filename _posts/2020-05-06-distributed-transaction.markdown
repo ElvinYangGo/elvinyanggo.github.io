@@ -293,8 +293,6 @@ An * next to the record type means that the record is forced to stable storage.
 ```
 
 #### 第一阶段Prepare
-{: .no_toc}
-
 1. 协调者分配事务ID，写到磁盘，然后询问所有参与者是否可以执行事务
 
 2. 参与者执行事务，对资源加锁，写redo/undo日志到磁盘
@@ -302,8 +300,6 @@ An * next to the record type means that the record is forced to stable storage.
 3. 如果参与者执行事务成功，回复Yes，如果执行失败，回复No
 
 #### 第二阶段Commit/Abort
-
-{: .no_toc}
 
 分两种情况
 
@@ -331,8 +327,6 @@ An * next to the record type means that the record is forced to stable storage.
 
 #### 网络超时问题
 
-{: .no_toc}
-
 1. 协调者发送完Prepare请求后，在规定时间内没有收到所有参与者的回复。
    - 此时简单的做法是协调者发送Abort请求给所有参与者，参与者执行回滚操作，但是这个做法在某些条件下可能会导致事务不一致，后文会描述。
    - 复杂的做法是协调者向超时的参与者查询事务状态。
@@ -359,8 +353,6 @@ An * next to the record type means that the record is forced to stable storage.
 
 #### 宕机问题
 
-{: .no_toc}
-
 宕机问题都有可能转化为超时问题，宕机前如果写了redo/undo日志，重启后需要额外处理。
 
 1. 协调者发出Prepare请求前宕机。此时事务还未开始，不会有影响。
@@ -374,8 +366,6 @@ An * next to the record type means that the record is forced to stable storage.
 上面只讨论了原子性、一致性和持久性，没讨论隔离性的实现，隔离性可以考虑采用锁方案，实现简单，但性能可能比较差，另一种就是前文介绍的MVCC方案，性能会好不少，但实现复杂。
 
 #### 两阶段提交协议本身存在的问题
-
-{: .no_toc}
 
 即使解决了前面说的一些问题，两阶段提交协议还是会有问题，这两个问题是协议本身存在的，如下：
 
