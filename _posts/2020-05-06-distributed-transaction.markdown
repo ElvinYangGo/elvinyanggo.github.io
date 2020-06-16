@@ -249,7 +249,7 @@ MVCC解决了脏读、不可重复读问题，以及部分幻读问题。为什�
 
 
 
-## 分布式事务
+## 分布式事务协议
 
 分布式事务有两种形式，一种是分布式数据库事务，另一种分布式微服务事务。 
 
@@ -293,6 +293,7 @@ An * next to the record type means that the record is forced to stable storage.
 ```
 
 #### 第一阶段Prepare
+{: .no_toc}
 
 1. 协调者分配事务ID，写到磁盘，然后询问所有参与者是否可以执行事务
 
@@ -301,6 +302,8 @@ An * next to the record type means that the record is forced to stable storage.
 3. 如果参与者执行事务成功，回复Yes，如果执行失败，回复No
 
 #### 第二阶段Commit/Abort
+
+{: .no_toc}
 
 分两种情况
 
@@ -328,6 +331,8 @@ An * next to the record type means that the record is forced to stable storage.
 
 #### 网络超时问题
 
+{: .no_toc}
+
 1. 协调者发送完Prepare请求后，在规定时间内没有收到所有参与者的回复。
    - 此时简单的做法是协调者发送Abort请求给所有参与者，参与者执行回滚操作，但是这个做法在某些条件下可能会导致事务不一致，后文会描述。
    - 复杂的做法是协调者向超时的参与者查询事务状态。
@@ -354,6 +359,8 @@ An * next to the record type means that the record is forced to stable storage.
 
 #### 宕机问题
 
+{: .no_toc}
+
 宕机问题都有可能转化为超时问题，宕机前如果写了redo/undo日志，重启后需要额外处理。
 
 1. 协调者发出Prepare请求前宕机。此时事务还未开始，不会有影响。
@@ -367,6 +374,8 @@ An * next to the record type means that the record is forced to stable storage.
 上面只讨论了原子性、一致性和持久性，没讨论隔离性的实现，隔离性可以考虑采用锁方案，实现简单，但性能可能比较差，另一种就是前文介绍的MVCC方案，性能会好不少，但实现复杂。
 
 #### 两阶段提交协议本身存在的问题
+
+{: .no_toc}
 
 即使解决了前面说的一些问题，两阶段提交协议还是会有问题，这两个问题是协议本身存在的，如下：
 
@@ -446,11 +455,11 @@ An * next to the record type means that the record is forced to stable storage.
 
 
 
-### 分布式事务的实现
+## 分布式事务实现
 
 分布式事务实现上主要有四种模型：XA模型、TCC模型、Saga模型和MQ模型。
 
-#### XA模型
+### XA模型
 
 XA模型是由X/Open组织制定的分布式事务规范和接口。
 
@@ -476,7 +485,7 @@ XA模型严格保障事务ACID特性。事务执行过程中需要将资源锁�
 
 BASE通过牺牲强一致性来获得可用性和系统性能的提升。下面介绍的TCC、Saga、MQ都属于BASE理论模型，满足最终一致性。
 
-#### TCC模型
+### TCC模型
 
 TCC模型最早由Pat Helland于2007年发表的一篇名为《Life beyond Distributed Transactions:an Apostate’s Opinion》的论文提出。模型中，事务参与者需要实现Try, Confirm, Cancel三个接口。
 
@@ -512,7 +521,7 @@ TCC模型因为没有在Try阶段加锁，所以性能高于两阶段提交。�
 
 TCC模型使用两阶段提交来实现原子性，但无法满足隔离性。不同事务并发执行的时候，隔离性只能满足读未提交级别(Read Uncommited)，而且是由参与者在Try接口中预留资源的方式实现的。
 
-#### Saga模型
+### Saga模型
 
 Saga模型由Hector & Kenneth于1987年提出。这个模型中，每个事务参与者需要提供一个正向执行模块和逆向回滚模块，执行模块用于执行事务的正常操作，回滚模块用于在失败时执行回滚操作。
 
@@ -569,7 +578,7 @@ Saga模型由Hector & Kenneth于1987年提出。这个模型中，每个事务�
 
 和TCC类似，Saga模型在实现时也需要注意幂等性，空操作，请求乱序等问题。另外Saga模型也可以满足原子性，但无法满足隔离性。不同事务并发执行的时候，隔离性只能满足读未提交级别(Read Uncommited)。
 
-#### MQ模型
+### MQ模型
 
 MQ模型使用消息队列(Message Queue)来通知事务的各个参与者执行操作。
 
@@ -616,7 +625,7 @@ MQ模型中，需要确保参与者一定能成功执行事务，参与者不能
 
 
 
-#### 各模型开源实现
+### 各模型开源实现
 
 [ByteTCC](https://github.com/liuyangming/ByteTCC)
 
