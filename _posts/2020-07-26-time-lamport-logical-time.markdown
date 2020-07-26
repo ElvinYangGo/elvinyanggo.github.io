@@ -67,7 +67,7 @@ tags:
 2. a和b在不同的进程中，a是发送进程内的发送事件，b是同一消息接收进程内的接收事件，则 a → b。
 3. 如果a → b并且b → c，则a → c。
 
-如果a和b没有先后关系，则称两个事件是并发的，记作 a || b。
+如果a和b没有先后关系，则称两个事件是并发的，记作 a \|\| b。
 
 ![图一](/img/in-post/2020-07-26-lamport-logical-time/post-time-1.png)
 
@@ -181,7 +181,7 @@ P0是中心线程，P1发送锁请求给P0，然后P1发送消息给P2，P2收�
 
 
 
-## 参考：
+# 参考
 
 [Time, Clocks, and the Ordering of Events in a Distributed System](https://lamport.azurewebsites.net/pubs/time-clocks.pdf)
 
