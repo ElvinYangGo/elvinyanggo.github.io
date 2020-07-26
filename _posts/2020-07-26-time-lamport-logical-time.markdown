@@ -39,13 +39,13 @@ tags:
 
 全序和偏序相比，多了一个完全性，全序定义如下：
 
-> **全序关系**即[集合](https://zh.wikipedia.org/wiki/集合_(数学)){\displaystyle X}![X](https://wikimedia.org/api/rest_v1/media/math/render/svg/68baa052181f707c662844a465bfeeb135e82bab)上的[反对称](https://zh.wikipedia.org/wiki/反对称关系)的、[传递](https://zh.wikipedia.org/wiki/传递关系)的和[完全](https://zh.wikipedia.org/w/index.php?title=完全关系&action=edit&redlink=1)的[二元关系](https://zh.wikipedia.org/wiki/二元关系)（一般称其为{\displaystyle \leq }![\leq](https://wikimedia.org/api/rest_v1/media/math/render/svg/440568a09c3bfdf0e1278bfa79eb137c04e94035)）。
+> **全序关系**即[集合](https://zh.wikipedia.org/wiki/集合_(数学))***X***上的[反对称](https://zh.wikipedia.org/wiki/反对称关系)的、[传递](https://zh.wikipedia.org/wiki/传递关系)的和[完全](https://zh.wikipedia.org/w/index.php?title=完全关系&action=edit&redlink=1)的[二元关系](https://zh.wikipedia.org/wiki/二元关系)（一般称其为 **≤**)。
 >
-> 若{\displaystyle X}![X](https://wikimedia.org/api/rest_v1/media/math/render/svg/68baa052181f707c662844a465bfeeb135e82bab)满足全序关系，则下列陈述对于{\displaystyle X}![X](https://wikimedia.org/api/rest_v1/media/math/render/svg/68baa052181f707c662844a465bfeeb135e82bab)中的所有{\displaystyle a,b}![a,b](https://wikimedia.org/api/rest_v1/media/math/render/svg/181523deba732fda302fd176275a0739121d3bc8)和{\displaystyle c}![c](https://wikimedia.org/api/rest_v1/media/math/render/svg/86a67b81c2de995bd608d5b2df50cd8cd7d92455)成立：
+> 若***X***满足全序关系，则下列陈述对于***X***中的所有**a,b**和**c**成立：
 >
-> - 反对称性：若{\displaystyle a\leq b}![{\displaystyle a\leq b}](https://wikimedia.org/api/rest_v1/media/math/render/svg/41558abc50886fdf38817495b243958d7b3dd39b)且{\displaystyle b\leq a}![{\displaystyle b\leq a}](https://wikimedia.org/api/rest_v1/media/math/render/svg/d38bff9a811bdd9b92516d9c2694712555b99952)则{\displaystyle a=b}![{\displaystyle a=b}](https://wikimedia.org/api/rest_v1/media/math/render/svg/1956b03d1314c7071ac1f45ed7b1e29422dcfcc4)
-> - 传递性：若{\displaystyle a\leq b}![{\displaystyle a\leq b}](https://wikimedia.org/api/rest_v1/media/math/render/svg/41558abc50886fdf38817495b243958d7b3dd39b)且{\displaystyle b\leq c}![{\displaystyle b\leq c}](https://wikimedia.org/api/rest_v1/media/math/render/svg/04cbc237b132cef779abc512c9c8e288781a808e)则{\displaystyle a\leq c}![{\displaystyle a\leq c}](https://wikimedia.org/api/rest_v1/media/math/render/svg/fb1c962997d8a303e076777cd6d6bc732f360ac8)
-> - 完全性：{\displaystyle a\leq b}![{\displaystyle a\leq b}](https://wikimedia.org/api/rest_v1/media/math/render/svg/41558abc50886fdf38817495b243958d7b3dd39b)或{\displaystyle b\leq a}![{\displaystyle b\leq a}](https://wikimedia.org/api/rest_v1/media/math/render/svg/d38bff9a811bdd9b92516d9c2694712555b99952)
+> - 反对称性：若**a ≤ b**且**b ≤ a** 则 **a=b**
+> - 传递性：若**a ≤ b**且**b ≤ c**则**a ≤ c**
+> - 完全性：**a ≤ b**或**b ≤ a**
 
 简单的说，偏序的意思是说集合中的元素是部分有序的，而全序的意思是集合中任意一对元素都是可以相互比较的，可以完全排序。下面是一些例子 ：
 
