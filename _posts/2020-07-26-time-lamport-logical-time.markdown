@@ -13,7 +13,7 @@ tags:
 
 在分布式系统中，不同的服务分布在不同的机器上，如何确定不同机器上的两个事件发生的先后顺序呢？在[《计算机的时钟（一）：NTP协议》](http://yang.observer/2020/07/11/time-ntp/)中我们介绍过NTP协议存在误差，所以不能通过不同机器上的本地时间来确定顺序。Lamport逻辑时钟是解决这个问题的方法之一，这个方法是Leslie Lamport老爷子在1978年的论文[《Time, Clocks, and the Ordering of Events in a Distributed System》](https://lamport.azurewebsites.net/pubs/time-clocks.pdf)提出的，所有做分布式系统开发的人都应该认真阅读这篇论文。
 
-[]()
+
 
 # 为什么需要排序
 
