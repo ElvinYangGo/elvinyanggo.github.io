@@ -72,11 +72,11 @@ tags:
 
 因为VCa < VCb，所以m *≤* s，所以必然在不早于a之前和不晚于b之后的时间内，Pa向Pb发送了消息，否则Pb对Pa的计数器得不到及时刷新，s就不会小于m。
 
-![图三](/img/in-post/2020-09-12-vector-clock/post-vector-proof1.jpg)
+![图三](/img/in-post/2020-09-12-vector-clock/post-vector-clock-proof1.jpg)
 
 实际上，可以分为以下几种情况：
 
-![图四](/img/in-post/2020-09-12-vector-clock/post-vector-proof2.jpg)
+![图四](/img/in-post/2020-09-12-vector-clock/post-vector-clock-proof2.jpg)
 
 1. 当a = c且d = b，易得a → b。
 2. 当a = c且d → b，由传递性，得a → b。
