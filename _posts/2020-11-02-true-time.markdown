@@ -12,9 +12,13 @@ tags:
 ---
 
 本系列文章主要介绍计算机系统中时钟的处理。主要内容包含NTP，Lamport逻辑时钟，向量时钟，TrueTime等。本文是第四篇，介绍TrueTime。
+
 [计算机的时钟（一）：NTP协议](http://yang.observer/2020/07/11/time-ntp/)
+
 [计算机的时钟（二）：Lamport逻辑时钟](http://yang.observer/2020/07/26/time-lamport-logical-time/)
+
 [计算机的时钟（三）：向量时钟](http://yang.observer/2020/09/12/vector-clock/)
+
 在本系列上面的文章中我们介绍过NTP协议，使用网络来同步真实世界的物理时间(Wall Clock)。由于广域网的复杂网络状况，误差可能在100毫秒级别。这么大的误差显然是不适合一些精确度要求高的应用，一种办法是抛弃物理时钟，使用逻辑时钟解决物理时钟不可靠的问题。另外一种办法是努力提高物理时钟的精度，将误差降到可以接受的范围。Google设计的TrueTime就是这种方案的代表。
 
 
@@ -23,7 +27,7 @@ tags:
 
 TrueTime由[Google于2012年提出](https://static.googleusercontent.com/media/research.google.com/en//archive/spanner-osdi2012.pdf)，用于Google的全球范围部署的数据库Spanner。TrueTime由时钟硬件和算法组成。其中时钟硬件由GPS时钟和原子钟组成。之所以使用这两种硬件的原因是因为这两种硬件的故障原因不一样，这样可以提高时钟的可靠性。GPS时钟故障的原因有天线和接收器故障，无线信号干扰等。原子钟可能由于频率问题造成时钟漂移。这两种原因是不相交的，所以能提高整个硬件的可靠性。整个硬件的成本并不贵，淘宝上原子钟的价格从几千到几万都有。下图是美国Symmetricom公司的超小型芯片级原子钟，价格1500美元。
 
-![图一](/img/in-post/2020-11-02-true-time/post-casc-atomic-clock.png)
+![图一](/img/in-post/2020-11-02-true-time/post-csas-atomic-clock.png)
 
 
 
