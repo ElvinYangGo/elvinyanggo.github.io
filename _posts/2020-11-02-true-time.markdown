@@ -104,7 +104,7 @@ Google Spanner中，对同一个数据进行修改时，需要加锁，TrueTime�
 
 关于性能，论文中有句话我深以为然：
 
-> We believe it is better to have application programmers deal with per- formance problems due to overuse of transactions as bottlenecks arise, rather than always coding around the lack of transactions.
+> We believe it is better to have application programmers deal with performance problems due to overuse of transactions as bottlenecks arise, rather than always coding around the lack of transactions.
 
 
 
