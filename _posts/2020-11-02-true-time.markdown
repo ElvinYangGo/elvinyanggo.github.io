@@ -48,10 +48,10 @@ TrueTime架构如下：
 TrueTime提供了三个API来操作时间：
 
 |Method| Returns                              |
-|-------------- |------------------------------------ |
-|*TT.now*()     |*TTinterval*: [*earliest*, *latest*] |
-|*TT.after*(t)  |true if t has definitely passed      |
-|*TT.before*(t) |true if t has definitely not arrived |
+|--------------   |------------------------------------ |
+|*TT.now*()       |*TTinterval*: [*earliest*, *latest*] |
+|*TT.after*(t)    |true if t has definitely passed      |
+|*TT.before*(t)   |true if t has definitely not arrived |
 
 - TT.now() 返回的是当前时间，由于时钟硬件误差的存在，这个当前时间存在一个不确定的范围(uncertainty time)，也即一个范围 [earliest, latest]，可以保证当前绝对时间一定在这个范围内，上面介绍过，这个间隔范围最大是7ms。
 - TT.after(t) 判断传入的时间戳是否已经是过去的时间，也即 t < TT.now().earliest。
