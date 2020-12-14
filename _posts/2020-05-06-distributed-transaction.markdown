@@ -66,7 +66,7 @@ tags:
 
 虽然Buffer Pool提高了MySQL效率，但是会导致一个问题，如果在写入磁盘前，MySQL宕机了，Buffer Pool中的还没写盘的数据就丢失了，所以MySQL设计了redo日志来解决这个问题。
 
-redo日志由内存中的redo log buffer和redo日志文件组成。修改数据时，先写redo日志添加到内存中的redo log buffer，然后修改Buffer Pool中的数据。提交这次事务时，可以选择是否将redo log buffer中的日志刷新到磁盘。用户可以通过innodb_flush_log_at_trx_commit参数来控制写盘时机，有三种取值：
+redo日志由内存中的redo log buffer和redo日志文件组成。修改数据时，先写redo日志，添加到内存中的redo log buffer，然后修改Buffer Pool中的数据。提交这次事务时，可以选择是否将redo log buffer中的日志刷新到磁盘。用户可以通过innodb_flush_log_at_trx_commit参数来控制写盘时机，有三种取值：
 
 - 0，事务提交时不写盘，由线程每秒写盘一次。
 - 1，事务提交时调用fsync强制写盘。
@@ -87,7 +87,7 @@ MySQL中redo日志以块（block）为单位存储，每块的大小为512B，�
 
 每个block由12字节头部log block header，492字节日志内容log block和8字节尾部log block tailer组成。
 
-log block日志内容中保存是具体redo日志，格式如下：
+log block日志内容中保存的是具体redo日志，格式如下：
 
 ![](/img/in-post/2020-05-06-distributed-transaction/post-redo-log-body.png)
 
@@ -342,10 +342,10 @@ An * next to the record type means that the record is forced to stable storage.
        - 如果所有参与者回复的是Yes，此时参与者可以执行Commit操作吗？不能，原因有两个。
 
          - 如果之后协调者的Commit请求又被参与者收到了，此时参与者需要能识别出这个事务已经Commit了，不能重复Commit，也就是需要支持幂等，当然这个问题还比较好处理。
-       - 即使所有参与者都回复的是Yes，协调者如果在接收Prepare回复阶段超时了，然后写Abort日志，之后宕机了或者发生网络分区。此时参与者执行Commit操作会破坏**原子性**。那怎么办呢？有三种办法：
-           - 第一种办法是什么也不做，告警，等待人工处理。
-           - 第二种办法是等待网络恢复或者协调者宕机重启。
-           - 第三种办法是保证协调者的可用性(Availablity)，主协调者宕机后有其他的协调者能继续服务。
+         - 即使所有参与者都回复的是Yes，协调者如果在接收Prepare回复阶段超时了，然后写Abort日志，之后宕机了或者发生网络分区。此时参与者执行Commit操作会破坏**原子性**。那怎么办呢？有三种办法：
+             - 第一种办法是什么也不做，告警，等待人工处理。
+             - 第二种办法是等待网络恢复或者协调者宕机重启。
+             - 第三种办法是保证协调者的可用性(Availablity)，主协调者宕机后有其他的协调者能继续服务。
 3. 协调者等待参与者Commit/Abort之后的ACK超时。根据上面的讨论，参与者一定会执行Commit/Abort操作，此时协调者可以认为事务已经完成了，返回结果给客户端。事实上，协调者写完Commit/Abort日志，发送Commit/Abort请求给参与者后，就可以直接返回结果给客户端，不必等待最后的ACK。
 
 #### 宕机问题
