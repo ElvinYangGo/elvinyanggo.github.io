@@ -1,0 +1,148 @@
+---
+layout: post
+title: "计算机的时钟（五）：混合逻辑时钟"
+author: "Yang"
+header-style: text
+tags:
+  - Hybrid Logical Clocks
+  - HLC
+  - NTP
+---
+
+本系列文章主要介绍计算机系统中时钟的处理。主要内容包含NTP，Lamport逻辑时钟，向量时钟，TrueTime等。本文是第五篇，介绍**混合逻辑时钟(Hybrid Logical Clocks)**。
+
+[计算机的时钟（一）：NTP协议](http://yang.observer/2020/07/11/time-ntp/)
+
+[计算机的时钟（二）：Lamport逻辑时钟](http://yang.observer/2020/07/26/time-lamport-logical-time/)
+
+[计算机的时钟（三）：向量时钟](http://yang.observer/2020/09/12/vector-clock/)
+
+[计算机的时钟（四）：TrueTime](http://yang.observer/2020/11/02/true-time/)
+
+在本系列前面的文章中我们介绍了计算机处理时钟的两种方式，一种是物理时钟，包括NTP协议和TrueTime都属于物理时钟，另一种是逻辑时钟，包括Lamport逻辑时钟和向量时钟。这两种时钟有各自的优缺点。物理时钟的优点在于直观，就是真实世界的时间，使用方便，缺点在于无法做到绝对精确，成本相对高一些。逻辑时钟的优点在于可以做到精确的因果关系，缺点在于节点之间需要通信，而且使用上不如物理时钟直观。
+
+本文介绍的混合逻辑时钟(HLC)将物理时钟和逻辑时钟结合起来，我们来看看它是怎么一回事。
+
+
+
+# HLC介绍
+
+HLC由Sandeep Kulkarni, Murat Demirbas, Deepak Madeppa, Bharadwaj Avva, and Marcelo Leone在2014年的论文[《Logical Physical Clocks and Consistent Snapshots in Globally Distributed Databases》](https://cse.buffalo.edu/~demirbas/publications/hlc.pdf)中提出。目的是为了填补理论（逻辑时钟）和实际（物理时钟）之间的差距，支持因果关系，同时又有物理时钟的直观特点。
+
+给分布式系统中每个事件分配一个HLC，比如e事件的HLC记作 l.e，HLC保证能够满足以下四个性质：
+
+> 1. 如果 e 事件发生在 f 事件之前（e happened before f），那么 l.e 一定小于 l.f，也就是满足因果关系。
+> 2. l.e 可以存储在一个整数中，不会随着分布式系统中节点数的增加而增加。（这点和向量时钟不一样，向量时钟会随着节点数的增加而增加）
+> 3. l.e 的值不会无限增长。（这点和Lamport逻辑时钟不一样，Lamport逻辑时钟会无限增长）
+> 4. l.e 的值和 e 事件发生的物理时钟值接近，| l.e - pt.e |的值会小于一定的范围。
+
+
+
+# 第一版算法
+
+回顾之前介绍过的Lamport逻辑时钟算法：
+
+记事件 j 的逻辑时钟为 l.j
+```
+初始化：l.j = 0
+发送消息事件或者本地事件：l.j = l.j + 1
+接收m消息事件：l.j = max(l.j, l.m) + 1
+```
+如果想在算法中引入物理时钟，最简单的做法是每次修改逻辑时钟的时候，比较逻辑时钟和物理时钟的大小，取最大的值。
+
+记事件 j 发生时的物理时钟值为 pt.j，算法变成了：
+```
+初始化：l.j = 0
+发送消息事件或者本地事件：l.j = max(l.j + 1, pt.j)
+接收m消息事件：l.j = max(l.j + 1, l.m + 1, pt.j)
+```
+从算法中可以很容易地看出满足上面说的HLC性质1和2。然而算法不满足性质3和性质4。举个例子：
+
+![图一](/img/in-post/2020-12-16-hlc/post-hlc-naive-example.png)
+
+分布式系统中有4个节点，每个矩形中左边的数字是本节点的物理时钟 pt，右边是本节点的逻辑时钟 l。消息从节点0依次到节点1，节点2，节点3，再到节点1。到了节点1的时候，从图中可以看到物理时钟和逻辑时钟的差距 |l - pt| 是13。如果整个系统中事件发生的频率比较高，可以想象到，物理时钟和逻辑时钟的差距会越来越大。这违反了性质3和性质4。
+
+为什么会发生这个问题？原因是虽然在Lamport逻辑时钟的基础上引入了物理时钟，但是我们却不知道这个值究竟是物理时钟增长导致的还是逻辑时钟增长导致的。这样即使物理时钟的增长追赶上了逻辑时钟的增长，我们也没办法重置逻辑时钟部分的值。
+
+第一版算法凉凉。
+
+
+
+# 第二版算法
+
+为了解决这个问题，很自然地想到把物理时钟和逻辑时钟分开来表示。我们把HLC分成两部分 l.j 和 c.j。l.j 表示事件 j 发生时所感知到的最大物理时钟值，c.j 是事件 j 的逻辑时钟部分，当几个事件在同一个物理时钟值内发生时，c 用于记录事件之间的因果关系。pt 依然表示本地NTP协议的物理时钟值。新的算法如下：
+```
+初始化：l.j = 0; c.j = 0
+发送消息事件或者本地事件：
+  if pt.j <= l.j then c.j = c.j + 1
+  else c.j = 0; l.j = pt.j
+接收m消息事件：
+  if l.j == m.j == pt.j then c.j = max(c.j, c.m) + 1
+  else if pt.j <= l.j and l.m <= l.j then c.j = c.j + 1
+  else if pt.j <= l.m and l.j <= l.m then c.j = c.m + 1; l.j = l.m
+  else c.j = 0; l.j = pt.j
+```
+
+新算法执行的过程中，本地时钟的值通过NTP协议更新，HLC的值并不会修改本地时钟的值。由于分离了物理时钟和逻辑时钟，新的事件发生时，如果物理时钟部分的值没增长，就只增加逻辑时钟部分的值。如果本地的物理时钟赶上了HLC的物理时钟部分的值 l.j，就可以重置逻辑时钟部分的值 c.j，并把 l.j 更新为新的本地物理时钟。这样就可以解决第一版算法中HLC无限增长的问题，也满足了性质3和性质4的要求。具体数学证明过程参考[论文](https://cse.buffalo.edu/~demirbas/publications/hlc.pdf)。
+
+对于任何一个事件 j，pt.j <= l.j，也即HLC的物理时钟部分的值一定大于等于本地NTP的时钟值。假设整个分布式系统中，NTP协议的时钟误差值为 ε。新算法中，对于任何一个事件 j，| l.j - pt.j | <= ε，也就是HLC物理部分的值和本地物理时钟值的差距不会超过 ε。根据前文[计算机的时钟（一）：NTP协议](http://yang.observer/2020/07/11/time-ntp/)的介绍，这个误差值在局域网内大概1毫秒内，广域网可能达到100毫秒或更大。
+
+使用新算法来分析第一版算法中的例子：
+
+![图二](/img/in-post/2020-12-16-hlc/post-hlc-example.png)
+
+上图中，如果消息只在节点123之间流动，HLC的物理时钟部分 l.j 会一直保持为10，c.j 部分会不断增长，直到节点123中任何一个的NTP时钟值超过10，这时会将 c.j 重置为0。
+
+工程实现上，HLC可以设置成64比特的整数，高位48比特是以毫秒为单位的物理时间。低位16比特是一个单调增长的整数，最大65535。整体结构有点像[雪花算法](http://yang.observer/2020/08/30/snowflake/)生成的唯一ID。
+
+
+
+# HLC的异常处理
+
+如果某个节点的NTP物理时钟值出现了异常，比如变成一个极大的值，其他节点收到这个故障节点的消息，会导致其他节点的HLC值出现问题。为了阻止故障的扩散，可以设置HLC物理部分偏差的上限，如果收到的消息物理部分值的偏差超过上限，忽略这条消息，同时发送告警等待人工处理。
+
+
+
+# HLC的性能数据
+
+[论文](https://cse.buffalo.edu/~demirbas/publications/hlc.pdf)中给出了HLC的性能测试数据。
+
+![图三](/img/in-post/2020-12-16-hlc/post-hlc-perf-4.png)
+
+上图中，4个节点组成的系统，NTP的平均误差值 offset 分别设为5毫秒和1.5毫秒两种情况。在这两种情况下，HLC的逻辑时钟部分的值 c < 4，保持了一个很低的值。 在offset为5毫秒的情况下，| l - pt | 的最大差距是21.7毫秒，90%的差距值小于7.8毫秒，平均差距是0.2毫秒。
+
+![图四](/img/in-post/2020-12-16-hlc/post-hlc-perf-16.png)
+
+如果把节点数变成16个，NTP的平均误差值 offset 分别设为16毫秒和6毫秒两种情况。c < 8，依然保持了一个很低的值。从图中可以看出 offset越小，c 的值整体会更小。
+
+
+
+
+# HLC应用
+
+HLC可以用于分布式数据库一致性快照读的处理中。很多系统中都使用了HLC，比如HBase和CockRoachDB。
+
+![图五](/img/in-post/2020-12-16-hlc/post-hlc-snapshot.png)
+
+比如，我们要获取 t = 10 这个时间点的数据快照，也即HLC为(l = 10, c = 0)，拿这个HLC值去每个节点查找，可以得出上图中黑色的粗线，这条线对应的数据就是系统在 t = 10 的数据快照。
+
+CockRoachDB在分布式事务中使用了HLC。根据HLC的性质4，| l.e - pt.e |的值会小于一定的范围 MaxOffset，CockRoachDB默认这个值为500毫秒，pt.e + MaxOffset一定是系统中最大的物理时间。启动事务时会获取本地的HLC值 hlc.e，并且确定一个区间 [ hlc.e, hlc.e + MaxOffset ]，然后发往其他节点执行快照读，如果节点上某个数据的HLC值为 hlc.g，分三种情况考虑：
+
+1. 如果 hlc.e + MaxOffset < hlc.g，即处于区间的右边，那么e事件肯定发生在g事件之前，不能读取这个数据。
+2. 如果 hlc.e < hlc.g <= hlc.e + MaxOffs，即处于区间之中，由于物理时钟的不确定性，不能分辨出e事件和g事件的先后关系。这个时候需要重启事务，获取一个更大的hlc，相当于等待这个不确定的时间过去，推迟事务的执行。
+3. 如果 hlc.g < hlc.e，那么g事件肯定发生在e之前，这时可以读取这个数据。（对于这点我有点疑问，由于不确定时间的存在，物理时间可能快，也可能慢，这个区间应该是[ hlc.e - MaxOffset, hlc.e + MaxOffset ]，为什么这里hlc.g < hlc.e就认为g在e前面？）
+
+
+
+# 总结
+
+整个系列一直在物理时钟和逻辑时钟之间打转。先介绍了最直观的NTP协议，由于NTP协议的不可靠性，引入了逻辑时钟，包括Lamport逻辑时钟和向量时钟，但是逻辑时钟只能确保因果关系，并且需要消息的传递，由此又引入了更精确的物理时钟TrueTime，最后是把物理时钟和逻辑时钟结合起来的混合逻辑时钟。
+
+
+
+# 参考
+
+[Logical Physical Clocks and Consistent Snapshots in Globally Distributed Databases](https://cse.buffalo.edu/~demirbas/publications/hlc.pdf)
+
+[CockroachDB分布式事务解密](http://www.cockroachchina.cn/?p=976)
+
