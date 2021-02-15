@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "期权投资策略（一）：call buying"
+title: "期权投资策略（二）：call buying"
 author: "Yang"
 header-style: text
 tags:
