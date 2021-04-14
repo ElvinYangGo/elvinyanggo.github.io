@@ -69,7 +69,7 @@ gamma有如下几个特点：
 
 2. 深度实值或深度虚值的期权的gamma接近于0。
 
-3. 所有期权的gamma都是正数，不管是call还是put。
+3. 所有期权的gamma都是正数，不管是call还是put，卖出期权gamma是负数。
 4. 平值短期期权的gamma高于长期期权的gamma。
 5. 平值低波动率期权的gamma高于高波动率期权的gamma。
 
