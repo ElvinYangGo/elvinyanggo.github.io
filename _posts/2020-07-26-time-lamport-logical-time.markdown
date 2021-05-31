@@ -9,7 +9,23 @@ tags:
   - 逻辑时钟
 ---
 
+本系列文章链接如下：
+
+[计算机的时钟（一）：NTP协议](http://yang.observer/2020/07/11/time-ntp/)
+
+[计算机的时钟（二）：Lamport逻辑时钟](http://yang.observer/2020/07/26/time-lamport-logical-time/)
+
+[计算机的时钟（三）：向量时钟](http://yang.observer/2020/09/12/vector-clock/)
+
+[计算机的时钟（四）：TrueTime](http://yang.observer/2020/11/02/true-time/)
+
+[计算机的时钟（五）：混合逻辑时钟](http://yang.observer/2020/12/16/hlc/)
+
+
+
 本系列文章主要介绍计算机系统中时钟的处理。主要内容包含NTP，Lamport逻辑时钟，向量时钟，TrueTime等。本文是第二篇，介绍Lamport逻辑时钟。
+
+
 
 在分布式系统中，不同的服务分布在不同的机器上，如何确定不同机器上的两个事件发生的先后顺序呢？在[《计算机的时钟（一）：NTP协议》](http://yang.observer/2020/07/11/time-ntp/)中我们介绍过NTP协议存在误差，所以不能通过不同机器上的本地时间来确定顺序。Lamport逻辑时钟是解决这个问题的方法之一，这个方法是Leslie Lamport老爷子在1978年的论文[《Time, Clocks, and the Ordering of Events in a Distributed System》](https://lamport.azurewebsites.net/pubs/time-clocks.pdf)提出的，所有做分布式系统开发的人都应该认真阅读这篇论文。
 

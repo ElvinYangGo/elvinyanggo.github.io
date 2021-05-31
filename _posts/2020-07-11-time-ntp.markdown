@@ -10,7 +10,24 @@ tags:
   - 网络时间协议
 ---
 
+本系列文章链接如下：
+
+[计算机的时钟（一）：NTP协议](http://yang.observer/2020/07/11/time-ntp/)
+
+[计算机的时钟（二）：Lamport逻辑时钟](http://yang.observer/2020/07/26/time-lamport-logical-time/)
+
+[计算机的时钟（三）：向量时钟](http://yang.observer/2020/09/12/vector-clock/)
+
+[计算机的时钟（四）：TrueTime](http://yang.observer/2020/11/02/true-time/)
+
+[计算机的时钟（五）：混合逻辑时钟](http://yang.observer/2020/12/16/hlc/)
+
+
+
 本系列文章主要介绍计算机系统中时钟的处理。主要内容包含NTP，Lamport逻辑时钟，向量时钟，TrueTime等。本文是第一篇，介绍NTP协议。
+
+
+
 
 # 电脑的时钟
 

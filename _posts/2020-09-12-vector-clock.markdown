@@ -13,6 +13,20 @@ tags:
   - 朋友圈
 ---
 
+本系列文章链接如下：
+
+[计算机的时钟（一）：NTP协议](http://yang.observer/2020/07/11/time-ntp/)
+
+[计算机的时钟（二）：Lamport逻辑时钟](http://yang.observer/2020/07/26/time-lamport-logical-time/)
+
+[计算机的时钟（三）：向量时钟](http://yang.observer/2020/09/12/vector-clock/)
+
+[计算机的时钟（四）：TrueTime](http://yang.observer/2020/11/02/true-time/)
+
+[计算机的时钟（五）：混合逻辑时钟](http://yang.observer/2020/12/16/hlc/)
+
+
+
 本系列文章主要介绍计算机系统中时钟的处理。主要内容包含NTP，Lamport逻辑时钟，向量时钟，TrueTime等。本文是第三篇，介绍向量时钟。
 
 在[《计算机的时钟（二）：Lamport逻辑时钟》](http://yang.observer/2020/07/26/time-lamport-logical-time/)中，我们介绍过**对于任意两个事件a和b，如果 a → b，那么 C (a) < C (b)，但是反向并不成立，C(a) < C(b)推不出来a→b。**本文介绍的向量时钟(Vector Clocks)可以保证反向也能成立，也即充分条件变成了充分必要条件，这是如何做到的呢，且听我一一道来。
