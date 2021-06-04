@@ -83,8 +83,11 @@ HLC由Sandeep Kulkarni, Murat Demirbas, Deepak Madeppa, Bharadwaj Avva, and Marc
   if pt.j <= l.j then c.j = c.j + 1
   else c.j = 0; l.j = pt.j
 接收m消息事件：
-  if l.j == m.j == pt.j then c.j = max(c.j, c.m) + 1
+  // 如果j事件,m消息和本地物理时钟的值相同，增加逻辑时钟部分
+  if l.j == l.m == pt.j then c.j = max(c.j, c.m) + 1
+  // 如果本地物理时钟没赶上HLC的物理时钟，并且j事件的逻辑时钟更大，更新逻辑时钟的值
   else if pt.j <= l.j and l.m <= l.j then c.j = c.j + 1
+  // 如果本地物理时钟没赶上HLC的物理时钟，并且m消息的逻辑时钟更大，更新HLC的逻辑时钟部分和物理时钟部分
   else if pt.j <= l.m and l.j <= l.m then c.j = c.m + 1; l.j = l.m
   else c.j = 0; l.j = pt.j
 ```
