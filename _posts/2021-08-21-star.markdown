@@ -1,0 +1,74 @@
+---
+layout: post
+title: "Stars"
+author: "Yang"
+header-style: text
+tags:
+  - Milky way
+  - Orion
+  - Southern Cross
+  - Magellanic Cloud
+  - radio telescope
+---
+
+- any list
+{:toc}
+All photos are taken by **Sony RX100**.
+
+ 
+
+# Northern Milky Way
+
+![图一](/img/in-post/2021-08-21-star/post-northern-milky-way.jpg)
+
+
+
+# Southern Milky Way
+
+![图二](/img/in-post/2021-08-21-star/post-southern-milky-way.jpg)
+
+
+
+![图三](/img/in-post/2021-08-21-star/post-southern-milky-way-part.jpg)
+
+
+
+# Magellanic Cloud
+
+![图四](/img/in-post/2021-08-21-star/post-magellanic-cloud.jpg)
+
+
+
+# Southern Cross
+
+![图五](/img/in-post/2021-08-21-star/post-southern-cross.jpg)
+
+
+
+# Orion
+
+![图六](/img/in-post/2021-08-21-star/post-orion.jpg)
+
+
+
+# Radio telescope
+
+![图七](/img/in-post/2021-08-21-star/post-radio-telescope.jpg)
+
+
+
+# Star trails
+
+![图七](/img/in-post/2021-08-21-star/post-star-trails.jpg)
+
+
+
+
+
+
+
+
+
+
+
+
