@@ -12,13 +12,13 @@ tags:
   - 快照
 ---
 
-
-
+- any list
+{:toc}
 # 问题描述
 
 考虑这样一个问题，一个分布式流处理系统，比如Flink，数据源源不断地从输入端涌入，系统中多个任务进程对数据进行各种计算，比如对某个数据进行求和，然后把处理后的数据结果发送给其他任务进程继续处理。系统中的任务进程是有状态的，比如数据求和的临时结果。如何对这样的系统保存全局快照，以应对系统崩溃等问题？
 
-直观的方法有两种，这两种方法都会"stop the world"。一种是让所有任务进程约定在同一个时间点保存自身状态。然而我们知道[系统时间无法做到完全同步](https://yang.observer/2020/07/11/time-ntp/)，没法让所有任务进程同时保存自身状态。另一种方法是让中心管理进程给所有任务进程发一个控制指令，所有任务进程停止处理新的数据，然后保存自己的状态。这种方式会中断整个系统的运行，显然不是我们想要的方案。而且这种方案会导致另外一个问题，那就是数据可能不一致。举个例子：
+直观的方法有两种，这两种方法都会"stop the world"。一种是让所有任务进程约定同一个时间点保存自身状态。然而我们知道[系统时间无法做到完全同步](https://yang.observer/2020/07/11/time-ntp/)，没法精确地让所有任务进程同时保存自身状态。另一种方法是让中心管理进程给所有任务进程发一个控制指令，所有任务进程停止处理新的数据，保存自己的状态。这种方式会中断整个系统的运行，显然不是我们想要的方案。而且这种方案会导致另外一个问题，那就是数据可能不一致。举个例子：
 
 ![图一](/img/in-post/2021-11-27-distributed-shapshots/not-consistent1.png)
 
@@ -26,7 +26,7 @@ tags:
 
 ![图二](/img/in-post/2021-11-27-distributed-shapshots/not-consistent2.png)
 
-这次的全局快照对应着大号黑线所标识的横截面。d节点属于全局快照中，c节点不属于全局状态。然而c节点发生在d节点之前，这违法了**一致性**。也就是**对于全局快照中保存的任何一个事件，在这个事件之前发生(happend before)的事件应该保存在这次的快照中**。
+这次的全局快照对应着大号黑线所标识的横截面。横截面左边的事件在快照中，右边的事件不属于。d节点属于全局快照中，c节点不属于全局状态。然而c节点发生在d节点之前，这违法了**一致性**。也就是**对于全局快照中保存的任何一个事件，在这个事件之前发生(happend before)的事件应该保存在这次的快照中**。
 
 # Chandy-Lamport算法
 
@@ -34,7 +34,7 @@ tags:
 
 ## 前提条件
 
-首先描述一些定义：
+首先描述算法中的一些定义：
 
 1. 分布式系统由多个进程Pi组成。
 2. 每个进程通过网络通道和其他进程建立双向连接，Cij表示从Pi到Pj的连接通道，Cji表示从Pj到Pi的连接通道。
@@ -46,7 +46,7 @@ tags:
 2. 进程之间的连接是保序的，也即FIFO Channel。
 3. 进程之间的消息是可靠传递的。
 
-算法分为三个步骤。
+算法分为初始化、传播、结束三个步骤。
 
 ## 初始化
 
@@ -69,12 +69,12 @@ tags:
 3. 记录从其他通道Clj(l != k)上收到的application消息。
 
 如果不是第一次收到marker消息：
-把通道Ckj上记录的所有application消息作为通道Ckj的状态，并且不再记录之后发来的application消息。
+把通道Ckj上记录的所有application消息作为通道Ckj的状态，不再记录之后发来的application消息。
 ```
 
 为什么要给其他所有进程发maker，包括Pk？
 
-给其他进程发送marker消息，目的就是告诉其他进程，在这条marker消息之后的application就不用记录在这次的快照中了。
+给其他进程发送marker消息，目的就是告诉其他进程，在这条marker消息之后的application不用记录在这次的快照中。
 
 ## 结束
 
@@ -88,7 +88,7 @@ tags:
 
 ## 示例
 
-举个例子来描述这个算法，这样我们会更加清楚算法的流程。这个例子来源于[Illinois University的Indranil Gupta教授的课程](https://courses.engr.illinois.edu/cs425/fa2017/)。图片来源于Lindsey Kuper的博客[《An example run of the Chandy-Lamport snapshot algorithm》](http://composition.al/blog/2019/04/26/an-example-run-of-the-chandy-lamport-snapshot-algorithm/)。
+举个例子来描述这个算法，这样我们会更加清楚算法的流程。这个例子来源于[Illinois University的Indranil Gupta教授的课程](https://courses.engr.illinois.edu/cs425/fa2017/)。
 
 ![图三](/img/in-post/2021-11-27-distributed-shapshots/example1.png)
 
@@ -96,11 +96,11 @@ tags:
 
 ![图四](/img/in-post/2021-11-27-distributed-shapshots/example2.png)
 
-进程P1在B事件之后发起快照流程。P1首先记录自己的状态，这个状态包含A和B两个事件，然后给P2和P3发送marker消息，用图中红色虚线表示。之后开始记录从C21和C31通道发来的application消息。上图中用省略号表示正在记录这个通道的消息。
+进程P1在b事件之后发起快照流程。P1首先记录自己的状态，这个状态包含a和b两个事件，然后给P2和P3发送marker消息，用图中红色虚线表示。之后开始记录从C21和C31通道发来的application消息。上图中用省略号表示正在记录这个通道的消息。
 
 ![图五](/img/in-post/2021-11-27-distributed-shapshots/example3.png)
 
-进程P3先收到marker消息，而且是第一次收到marker消息。P2记录自己的状态，包含I事件。然后设置通道C13为空集合。之后给P1和P2发送marker消息。最后开始记录C23通道发来的application消息。
+进程P3先收到marker消息，而且是第一次收到marker消息。P2记录自己的状态，包含i事件。然后设置通道C13为空集合。之后给P1和P2发送marker消息。最后开始记录C23通道发来的application消息。
 
 ![图六](/img/in-post/2021-11-27-distributed-shapshots/example4.png)
 
@@ -108,7 +108,7 @@ tags:
 
 ![图七](/img/in-post/2021-11-27-distributed-shapshots/example5.png)
 
-进程P2收到P3发来的marker消息，这是P2第一次收到marker消息。P2记录自己的状态，包含事件F, G, H。然后设置C32位空集合，之后给P1和P2发送marker消息，最后开始记录C12通道发来的application消息。
+进程P2收到P3发来的marker消息，这是P2第一次收到marker消息。P2记录自己的状态，包含事件f, g, h。然后设置C32为空集合，之后给P1和P2发送marker消息，最后开始记录C12通道发来的application消息。
 
 现在所有进程都已经记录了自己的状态，但是算法还没结束，因为通道的状态还没记录完。
 
@@ -118,7 +118,7 @@ tags:
 
 ![图九](/img/in-post/2021-11-27-distributed-shapshots/example7.png)
 
-进程P1从通道C21上先收到进程P2在H事件发来的application消息，把这一消息M[HD]加到C21中。然后收到了P2发来的marker消息，结束通道C21的状态记录，包含M[HD]消息。P1完成了自己工作。
+进程P1从通道C21上先收到进程P2在h事件发来的application消息，把这一消息M[hd]加到C21中。然后收到了P2发来的marker消息，结束通道C21的状态记录，包含M[hd]消息。P1完成了自己工作。
 
 ![图十](/img/in-post/2021-11-27-distributed-shapshots/example8.png)
 
@@ -136,17 +136,17 @@ tags:
 
 上个例子生成的快照是上图中大号黑线对应的横截面。黑线左边的事件都保存在快照中，属于过去发生的事件。黑线右边的事件都没有保存在快照中，属于未来发生的事件。Chandy-Lamport算法生成的快照满足一致性的要求，也叫做一致性切割(Consistent  Cut)。
 
-我们可以证明如果事件A happened before 事件B，B在快照中，那么A也在快照中：
+我们可以证明如果事件a happened before 事件b，b在快照中，那么a也在快照中：
 
-如果A和B属于同一个进程内的事件，那么命题显然上正确的。
+如果a和b属于同一个进程内的事件，那么命题显然是正确的。
 
-如果A是进程p的发送事件，B是进程q的接收事件。因为B在快照中，那么进程q肯定没有收到过marker消息，否则B事件不会在快照中。因为通道是可靠保序的，进程p肯定也没有发送过marker消息。所以A事件肯定也在快照中。
+如果a是进程P的发送事件，b是进程Q的接收事件。因为b在快照中，那么进程Q肯定没有收到过marker消息，否则b事件不会在快照中。因为通道是可靠保序的，进程P肯定也没有发送过marker消息，所以a事件肯定也在快照中。
 
 
 
 # Flink的ABS算法
 
-回到开篇的问题，Flink使用了一种称作[Asynchronous Barrier Snapshotting(ABS)算法](https://arxiv.org/pdf/1506.08603.pdf)来生成全局快照。ABS算法在Chandy-Lamport算法基础上做了一些改动，通过阶段性地保存每个算子(operator)的状态，可以做到不需要保存通道的状态，但还是要求算子之间的连接是保序可靠的，而且算法会局部地停止处理数据。根据数据流中是否有环，ABS的处理有区别。
+回到开篇的问题，Flink使用了一种称作[Asynchronous Barrier Snapshotting(ABS)算法](https://arxiv.org/pdf/1506.08603.pdf)来生成全局快照。ABS算法在Chandy-Lamport算法基础上做了一些改动，通过阶段性地保存每个算子(operator)的状态，可以做到不需要保存通道的状态，但还是要求算子之间的连接是保序可靠的，而且算法会局部地停止处理数据。根据数据流中是否有环，ABS的处理方式有区别。
 
 ## 无环数据流
 
@@ -161,13 +161,13 @@ tags:
 
 上图是ABS算法的一个实例。系统中由两个输入源任务，两个中间统计任务，两个输出打印任务组成。
 
-图a中两个输入源被中心协调者注入barrier，保存自身状态后分别给两个中间任务发送barrier。
+图a)中两个输入源被中心协调者注入barrier，保存自身状态后分别给两个中间任务发送barrier。
 
-图b中count-1任务收到两个输入源发来的barrier后，停止处理两个上游数据，记录自身状态，往print-1任务发送barrier，然后恢复两个上游数据的处理。count-2任务先收到src-1输入源发来的barrier，然后停止处理src-1发来的后续数据，等待src-2发来的barrier。
+图b)中count-1任务收到两个输入源发来的barrier后，停止处理两个上游数据，记录自身状态，往print-1任务发送barrier，然后恢复两个上游数据的处理。count-2任务先收到src-1输入源发来的barrier，然后停止处理src-1发来的后续数据，等待src-2发来的barrier。
 
-图c中count-2等到src-2的barrier也收到后，停止处理src-2发来的后续数据，记录自身状态，往print-2任务发送barrier，然后恢复两个上游数据的处理。
+图c)中count-2等到src-2的barrier也收到后，停止处理src-2发来的后续数据，记录自身状态，往print-2任务发送barrier，然后恢复两个上游数据的处理。
 
-图d中print-1已经收到了count-1发来的barrier，完成了本阶段的处理，print-2的barrier还在路途中。等到print-2处理完barrier后，整个快照流程结束。
+图d)中print-1已经收到了count-1发来的barrier，完成了本阶段的处理，print-2的barrier还在路途中。等到print-2处理完barrier后，整个快照流程结束。
 
 ## 有环数据流
 
@@ -175,7 +175,7 @@ tags:
 
 对于有环数据流，不能简单地照搬无环数据流的算法，因为这样会造成有环节点因为等待环路上的barrier而造成死锁。
 
-解决环的问题，首先需要标识出造成环路的那条边，称为back-edge，比如上图连接中间两个任务的最上面的那条边。可以通过广度优先算法，如果一条边指向的终点已经遍历过了，这条边就是back-edge。
+解决环的问题，首先需要标识出造成环路的那条边，称为back-edge，比如上图a)中连接中间两个任务的最上面的那条边。可以通过广度优先算法识别back-edge，如果一条边指向的终点已经遍历过了，这条边就是back-edge。
 
 识别出back-edge后，任务节点在等待上游发来的barrier时，把back-edge先排除在外。收到所有其他上游发来的barrier后，先记录自身状态，然后给所有下游发送barrier，此时，任务节点需要记录从back-edge发来的数据，直到从back-edge也收到了barrier消息。全局快照中除了每个任务节点的状态外，还包含所有从back-edge收到的数据。有环数据流的示例如上图所示。
 
