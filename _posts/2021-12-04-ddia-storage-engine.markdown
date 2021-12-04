@@ -58,7 +58,7 @@ $ cat database
 
 一种直观地建立索引的方法是使用哈希表索引(Hash Indexes)。我们可以在内存中建立一个哈希表，哈希表的key是数据的key，哈希表的value是这个key对应的数据所在的文件的偏移。举个例子，上文123456和42这两个key的索引如下：
 
-![图一](/img/in-post/2021-12-04-storage-engine/hash-index1.png)
+![图一](/img/in-post/2021-12-04-ddia-storage-engine/hash-index1.png)
 
 [Bitcask存储引擎](https://riak.com/assets/bitcask-intro.pdf)使用的就是这种方式。Bitcask存储引擎写入时对文件执行的是追加(append)操作，查询的时候通过建立哈希索引加快查询性能。哈希表保存在内存中。这种存储引擎比较适合key的数量有限，并且写操作比较频繁的场景。Bitcask存储引擎遇到的问题和解决方案如下。
 
@@ -66,7 +66,7 @@ $ cat database
 
 解决方案是写入数据的时候，把数据文件分成固定的大小，一个数据文件达到大小后，写入新的文件中。然后对已经写入的文件进行压缩(compaction)操作。因为同一个key的操作可能有很多次，只有最后一次操作的值才有意义，之前操作的记录没有存在的必要，所以我们可以遍历已经保存过的文件，只保留每个key的最后一次操作值，然后把这些最新的值写入新的数据文件中，老的数据文件就可以删除了。压缩完了还需要更新哈希表中key对应的文件偏移。
 
-![图二](/img/in-post/2021-12-04-storage-engine/hash-index2.png)
+![图二](/img/in-post/2021-12-04-ddia-storage-engine/hash-index2.png)
 
 上图中yawn, scratch, memw, purr这四个key在老的数据文件中出现了多次，经过压缩后，数据减少了很多。
 
@@ -91,11 +91,11 @@ $ cat database
 
 和Bitcask存储引擎一样，SSTables方案里有一个后台压缩进程持续地对已经生成的SSTable文件进行合并。合并的方式可以采用归并排序(mergesort)算法，这样合并后的SSTable文件也是有序的。排序过程中，如果一个key在多个文件中出现，只需要使用最新的文件中的数据。如下图所示：
 
-![图三](/img/in-post/2021-12-04-storage-engine/sstable1.png)
+![图三](/img/in-post/2021-12-04-ddia-storage-engine/sstable1.png)
 
 使用SSTables结构，查询数据时，首先到内存memtable中查询数据是否存在，如果不存在，再到磁盘的SSTable文件中查找。对于SSTable文件，内存中也有key的索引表，区别在于我们不需要在内存中保存所有的key。因为SSTable中数据是有序的，我们只需要保存少数几个key的文件位置偏移就行了。如下图所示：
 
-![图四](/img/in-post/2021-12-04-storage-engine/sstable2.png)
+![图四](/img/in-post/2021-12-04-ddia-storage-engine/sstable2.png)
 
 对于key的范围为handbag和handprinted，内存中只需要保存handbag的位置偏移，查找key时先查找和这个key最相近的key所对应的位置偏移，然后读取整个偏移范围的内容，对这个范围内的数据再查找我们想要查的key。以handiwork为例，查找这个key时，先在内存索引表中找到最近的key为handbag，然后从SSTable文件中对应偏移位置开始读取对应长度的数据，然后扫描这段范围的数据，找到handiwork的值。一般来说内存索引表中一个key对应几KB的数据，所以扫描很快。另外保存这段范围的数据时，可以压缩之后再写入磁盘，这样增加磁盘IO的效率，不过这也带来了CPU压缩和解压缩的开销。比如handbag到handprinted这个范围的数据可以先压缩后再保存在磁盘中。
 
@@ -113,13 +113,13 @@ SSTable方案内存中保存了memtable，如果进程重启或者崩溃怎么�
 
 B-Tree也是一种有序的数据结构，可以高效地进行范围查找。示例如下：
 
-![图五](/img/in-post/2021-12-04-storage-engine/btree1.png)
+![图五](/img/in-post/2021-12-04-ddia-storage-engine/btree1.png)
 
 B-Tree中，每个数据文件的大小是固定，一般为4K或者更大，称作块(block)或者页(page)。B-Tree是分层结构。最上层的页作为根页。根页中按顺序保存了一些key，同时保存了指向子页的指针，也就是子页数据文件的位置。每个子页保存了一段范围的key和对应的位置指针。最底层的称做叶子页(leaf page)，叶子页保存了所有的数据，也有实现方式是在叶子页中只保存数据的指针。每页中保存的指针数量叫做分支系数(branching factor)，一般是几百个。大部分数据库B-Tree的层数是3到4层。对于4层的B-Tree，如果页是4KB，分支系数是500的话，可以储存256TB数据。
 
 B-Tree添加key的时候，需要找到包含这个key的页，如果这个页已经满了，需要分裂成两个新的页。示例如下：
 
-![图六](/img/in-post/2021-12-04-storage-engine/btree2.png)
+![图六](/img/in-post/2021-12-04-ddia-storage-engine/btree2.png)
 
 B-Tree修改页的时候也面临进程崩溃的问题。为了解决这个问题，写入的时候会先写入一个append-only log文件中，也叫做write-ahead log(WAL)或者[redo log](https://yang.observer/2020/05/06/distributed-transaction/#redo%E6%97%A5%E5%BF%97)。WAL写入成功后再写入数据页，如果进程崩溃了，WAL可以用来恢复数据页。
 
