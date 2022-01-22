@@ -108,7 +108,7 @@ tags:
 
 ![图七](/img/in-post/2021-11-27-distributed-shapshots/example5.png)
 
-进程P2收到P3发来的marker消息，这是P2第一次收到marker消息。P2记录自己的状态，包含事件f, g, h。然后设置C32为空集合，之后给P1和P2发送marker消息，最后开始记录C12通道发来的application消息。
+进程P2收到P3发来的marker消息，这是P2第一次收到marker消息。P2记录自己的状态，包含事件f, g, h。然后设置C32为空集合，之后给P1和P3发送marker消息，最后开始记录C12通道发来的application消息。
 
 现在所有进程都已经记录了自己的状态，但是算法还没结束，因为通道的状态还没记录完。
 
