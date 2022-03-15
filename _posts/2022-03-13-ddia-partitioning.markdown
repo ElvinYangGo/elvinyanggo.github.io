@@ -17,7 +17,7 @@ tags:
 
 分区(Partitioning)，也叫水平分割，是一种通过不同用户用户分散到不同服务器上从而提升系统整体负载的方法。上一篇文章介绍过[《复制》](https://yang.observer/2022/02/26/ddia-replication/)，有时分区和复制会混合使用，如下图所示，有4个分区，每个分区的数据有3个副本，而且3个副本在不同的物理机器上，这样可以防止一个副本所在的物理机器故障导致整个分区不可用的情况。
 
-![图一](/img/in-post/2022-03-09-ddia-partitioning/partitioning-replication.png)
+![图一](/img/in-post/2022-03-13-ddia-partitioning/partitioning-replication.png)
 
 # 如何分区
 
@@ -25,7 +25,7 @@ tags:
 
 第一种分区方法是按照关键字范围分区。比如按照用户ID划分，[0, 1000)属于第一个分区，[1000, 2000)属于第二个分区，以此类推。下图的百科全书按照字典顺序把条目分到了12本书中。
 
-![图二](/img/in-post/2022-03-09-ddia-partitioning/partitioning1.png)
+![图二](/img/in-post/2022-03-13-ddia-partitioning/partitioning1.png)
 
 这种方式的优点是由于相邻的ID在同一个分区，范围查询比较方便。
 
@@ -35,7 +35,7 @@ tags:
 
 第二种方式是按照哈希分区。一种想当然的方案是 hash(id) % server_count，这种方案有个问题是如果服务器数量变了，每个id很可能会落在不同的服务器上，这会造成所有用户数据从旧分区迁移到新分区。正确的做法是对哈希的结果再分段，比如哈希结果的[0, 1000)属于第一个分区，[1000, 2000)属于第二个分区。示例图如下所示，取每个key的前两个字节计算md5，把结果按照范围划分到8个分区中：
 
-![图三](/img/in-post/2022-03-09-ddia-partitioning/partitioning2.png)
+![图三](/img/in-post/2022-03-13-ddia-partitioning/partitioning2.png)
 
 这种方式的优点是数据分布比较均匀，不容易产生性能热点。在实现的时候，为了让数据更加均匀，可以给每个服务器分配多个虚拟节点，每个虚拟节点负责一段范围，具体可以参考[一致性哈希](https://en.wikipedia.org/wiki/Consistent_hashing)。
 
@@ -49,7 +49,7 @@ tags:
 
 ## 二级索引按照主键分区
 
-![图四](/img/in-post/2022-03-09-ddia-partitioning/partitioning-secondary1.png)
+![图四](/img/in-post/2022-03-13-ddia-partitioning/partitioning-secondary1.png)
 
 第一种方式是建立color和主键的映射关系，而且这种映射关系保存在每个分区内部，只保留本分区的数据。比如上图中，分区0中红色的车有191和306两个，都是分区0中的数据；分区1中红色的车有768，是分区1中的数据，不会有分区0中的数据。
 
@@ -57,7 +57,7 @@ tags:
 
 ## 二级索引按照其他键分区
 
-![图五](/img/in-post/2022-03-09-ddia-partitioning/partitioning-secondary2.png)
+![图五](/img/in-post/2022-03-13-ddia-partitioning/partitioning-secondary2.png)
 
 第二种方式是二级索引按照其他键分区，而不是主键。比如上图中颜色按照字典序分区，[a-r]在分区0中，[s-z]在分区1中。
 
@@ -83,7 +83,7 @@ tags:
 
 这种方式预先分配多个分区，分区数量需要比当前物理机器数量多不少，可以按照考虑业务最大的负载数预估。比如10个物理机器可以分配1000个分区，每个物理机器负责100个分区。新增机器时，修改物理机器和分区的映射关系，新机器从每个已有机器上分配一些分区，修改的时候注意保持均匀分布。
 
-![图六](/img/in-post/2022-03-09-ddia-partitioning/rebalancing.png)
+![图六](/img/in-post/2022-03-13-ddia-partitioning/rebalancing.png)
 
 上图中一开始有4个物理机器，预先分配20个分区，每个机器负责5个分区。新加机器后，每个旧机器分配一个分区到新机器上，这样每个机器负责4个分区。
 
@@ -103,7 +103,7 @@ tags:
 
 分区后，客户端怎么知道数据在哪个分区？有三种方式，如下图所示。
 
-![图七](/img/in-post/2022-03-09-ddia-partitioning/routing.png)
+![图七](/img/in-post/2022-03-13-ddia-partitioning/routing.png)
 
 1. 客户端随机找个节点，每个节点保存了当前的分区信息。如果这个节点刚好有对应数据，直接返回客户端，如果没有，把请求转发给对应的节点。
 2. 客户端把请求发给负载均衡服务器，这个服务器知道分区信息，转发请求给对应的节点。
