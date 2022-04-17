@@ -408,7 +408,7 @@ An * next to the record type means that the record is forced to stable storage.
 
 分两种情况
 
-**CanCommit阶段所有参与者回复**
+**CanCommit阶段所有参与者回复Yes**
 
 1. 协调者向所有参与者发送PreCommit请求
 2. 参与者执行事务，对资源加锁，写redo/undo日志到磁盘
