@@ -72,7 +72,7 @@ tags:
 把通道Ckj上记录的所有application消息作为通道Ckj的状态，不再记录之后发来的application消息。
 ```
 
-为什么要给其他所有进程发maker，包括Pk？
+为什么要给其他所有进程发marker，包括Pk？
 
 给其他进程发送marker消息，目的就是告诉其他进程，在这条marker消息之后的application不用记录在这次的快照中。
 
