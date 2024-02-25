@@ -66,7 +66,7 @@ RootServer主要功能包括集群管理，数据分布和副本管理。
 
 MergeServer主要功能包括协议解析，SQL解析，请求转发，结果合并，多表操作等。
 
-MergeServer缓存了子表分布信息，根据请求设计的子表将请求转发给子表所在的ChunkServer。如果是写操作，还会转发给UpdateServer。如果请求跨多个子表，MergeServer将请求拆分后并发发给多台ChunkServer，合并这些ChunkServer返回的结果。如果某个ChunkServer故障，MergeServer将请求转发给该子表其他副本所在的ChunkServer。
+MergeServer缓存了子表分布信息，根据请求涉及的子表将请求转发给子表所在的ChunkServer。如果是写操作，还会转发给UpdateServer。如果请求跨多个子表，MergeServer将请求拆分后并发发给多台ChunkServer，合并这些ChunkServer返回的结果。如果某个ChunkServer故障，MergeServer将请求转发给该子表其他副本所在的ChunkServer。
 
 ### 2.4 ChunkServer
 
