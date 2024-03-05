@@ -100,7 +100,7 @@ tags:
 
 ![图五](/img/in-post/2021-11-27-distributed-shapshots/example3.png)
 
-进程P3先收到marker消息，而且是第一次收到marker消息。P2记录自己的状态，包含i事件。然后设置通道C13为空集合。之后给P1和P2发送marker消息。最后开始记录C23通道发来的application消息。
+进程P3先收到marker消息，而且是第一次收到marker消息。P3记录自己的状态，包含i事件。然后设置通道C13为空集合。之后给P1和P2发送marker消息。最后开始记录C23通道发来的application消息。
 
 ![图六](/img/in-post/2021-11-27-distributed-shapshots/example4.png)
 
