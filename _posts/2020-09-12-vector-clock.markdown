@@ -72,30 +72,9 @@ tags:
 
 由以上两个结论又可以得出，**对于任意两个事件a和b，如果 a → b，那么 VC (a) < VC (b)**。
 
-怎么证明VC(a) < VC(b) 可以推导a → b呢？（以下证明过程摘自[逻辑时钟 - 如何刻画分布式中的事件顺序](https://writings.sh/post/logical-clocks)）
+怎么证明VC(a) < VC(b) 可以推导a → b呢？证明过程请参考[逻辑时钟 - 如何刻画分布式中的事件顺序](https://writings.sh/post/logical-clocks) 。
 
-如果事件a和b在同一个进程内，很显然 a → b。
-
-如果事件a和b在不同进程内，比如Pa和Pb。
-
-设VCa = [m ,n], VCb = [s, t]。
-
-因为VCa < VCb，所以m *≤* s，所以必然在不早于a之前和不晚于b之后的时间内，Pa向Pb发送了消息，否则Pb对Pa的计数器得不到及时刷新，s就不会小于m。
-
-![图三](/img/in-post/2020-09-12-vector-clock/post-vector-clock-proof1.jpg)
-
-实际上，可以分为以下几种情况：
-
-![图四](/img/in-post/2020-09-12-vector-clock/post-vector-clock-proof2.jpg)
-
-1. 当a = c且d = b，易得a → b。
-2. 当a = c且d → b，由传递性，得a → b。
-3. 同样对于d = b且a → c的情况。
-4. 当a → c且d → b，根据进程内的算法逻辑性和传递性，也很容易得出结论。
-
-综上: VCa < VCb 推导出 a → b 得证。
-
-向量时钟将Lamport逻辑时钟的全序时钟值改成了向量时钟的偏序关系，可以准确刻画事件的顺序，
+向量时钟将Lamport逻辑时钟的全序时钟值改成了向量时钟的偏序关系，可以准确刻画事件的顺序。
 
 
 
